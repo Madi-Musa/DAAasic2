@@ -36,15 +36,20 @@ public class DynamicArray implements IntList {
     @Override
     public void add(int index, int x) {
         if (index < 0 || index > size) {
-            throw new IndexOutOfBoundsException("index " + index + ", size " + size);
+            throw new IndexOutOfBoundsException(
+                    "index " + index + ", size " + size);
         }
+
         if (size == a.length) {
             grow();
         }
+
         for (int i = size; i > index; i--) {
             a[i] = a[i - 1];
+            metrics.steps++;
             metrics.moves++;
         }
+
         a[index] = x;
         size++;
     }
@@ -52,14 +57,19 @@ public class DynamicArray implements IntList {
     @Override
     public int remove(int index) {
         if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("index " + index + ", size " + size);
+            throw new IndexOutOfBoundsException(
+                    "index " + index + ", size " + size);
         }
+
         int removed = a[index];
         metrics.steps++;
+
         for (int i = index; i < size - 1; i++) {
             a[i] = a[i + 1];
+            metrics.steps++;
             metrics.moves++;
         }
+
         size--;
         return removed;
     }
@@ -67,8 +77,10 @@ public class DynamicArray implements IntList {
     @Override
     public int get(int index) {
         if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("index " + index + ", size " + size);
+            throw new IndexOutOfBoundsException(
+                    "index " + index + ", size " + size);
         }
+
         metrics.steps++;
         return a[index];
     }
@@ -78,19 +90,24 @@ public class DynamicArray implements IntList {
         for (int i = 0; i < size; i++) {
             metrics.steps++;
             metrics.comparisons++;
+
             if (a[i] == x) {
                 return true;
             }
         }
+
         return false;
     }
 
     private void grow() {
         int[] bigger = new int[a.length * 2];
+
         for (int i = 0; i < size; i++) {
             bigger[i] = a[i];
+            metrics.steps++;
             metrics.moves++;
         }
+
         a = bigger;
     }
 }

@@ -28,6 +28,7 @@ public class MyLinkedList implements IntList {
     @Override
     public void add(int x) {
         Node n = new Node(x);
+
         if (tail == null) {
             head = n;
             tail = n;
@@ -35,6 +36,7 @@ public class MyLinkedList implements IntList {
             tail.next = n;
             tail = n;
         }
+
         metrics.moves += 2;
         size++;
     }
@@ -42,21 +44,29 @@ public class MyLinkedList implements IntList {
     @Override
     public void add(int index, int x) {
         if (index < 0 || index > size) {
-            throw new IndexOutOfBoundsException("index " + index + ", size " + size);
+            throw new IndexOutOfBoundsException(
+                    "index " + index + ", size " + size);
         }
+
         if (index == size) {
             add(x);
             return;
         }
+
         Node n = new Node(x);
+
         if (index == 0) {
             n.next = head;
             head = n;
         } else {
             Node prev = nodeAt(index - 1);
+
             n.next = prev.next;
+            metrics.steps++;
+
             prev.next = n;
         }
+
         metrics.moves += 2;
         size++;
     }
@@ -64,30 +74,41 @@ public class MyLinkedList implements IntList {
     @Override
     public int remove(int index) {
         if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("index " + index + ", size " + size);
+            throw new IndexOutOfBoundsException(
+                    "index " + index + ", size " + size);
         }
+
         int removed;
+
         if (index == 0) {
             removed = head.value;
-            metrics.steps++;
+
             head = head.next;
+            metrics.steps++;
             metrics.moves++;
+
             if (head == null) {
                 tail = null;
                 metrics.moves++;
             }
         } else {
             Node prev = nodeAt(index - 1);
+
             Node target = prev.next;
             metrics.steps++;
+
             removed = target.value;
+
             prev.next = target.next;
+            metrics.steps++;
             metrics.moves++;
+
             if (target == tail) {
                 tail = prev;
                 metrics.moves++;
             }
         }
+
         size--;
         return removed;
     }
@@ -95,30 +116,39 @@ public class MyLinkedList implements IntList {
     @Override
     public int get(int index) {
         if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("index " + index + ", size " + size);
+            throw new IndexOutOfBoundsException(
+                    "index " + index + ", size " + size);
         }
+
         return nodeAt(index).value;
     }
 
     @Override
     public boolean contains(int x) {
-        for (Node cur = head; cur != null; cur = cur.next) {
-            metrics.steps++;
+        Node cur = head;
+
+        while (cur != null) {
             metrics.comparisons++;
+
             if (cur.value == x) {
                 return true;
             }
+
+            cur = cur.next;
+            metrics.steps++;
         }
+
         return false;
     }
 
     private Node nodeAt(int index) {
         Node cur = head;
-        metrics.steps++;
+
         for (int k = 0; k < index; k++) {
             cur = cur.next;
             metrics.steps++;
         }
+
         return cur;
     }
 }

@@ -14,11 +14,21 @@ public class MinHeap {
     public static MinHeap buildHeap(int[] array) {
         MinHeap h = new MinHeap();
         h.a = new int[Math.max(INITIAL_CAPACITY, array.length)];
-        System.arraycopy(array, 0, h.a, 0, array.length);
-        h.size = array.length;
-        for (int i = h.size / 2 - 1; i >= 0; i--) {
-            h.siftDown(i, h.a[i]);
+
+        for (int i = 0; i < array.length; i++) {
+            h.a[i] = array[i];
+            h.metrics.steps++;
+            h.metrics.moves++;
         }
+
+        h.size = array.length;
+
+        for (int i = h.size / 2 - 1; i >= 0; i--) {
+            int x = h.a[i];
+            h.metrics.steps++;
+            h.siftDown(i, x, i);
+        }
+
         return h;
     }
 
@@ -36,25 +46,28 @@ public class MinHeap {
 
     public void insert(int x) {
         if (size == a.length) {
-            int[] bigger = new int[a.length * 2];
-            for (int i = 0; i < size; i++) {
-                bigger[i] = a[i];
-                metrics.moves++;
-            }
-            a = bigger;
+            grow();
         }
-        int i = size++;
+
+        int i = size;
+        size++;
+
         while (i > 0) {
             int p = (i - 1) / 2;
+
+            int parentValue = a[p];
             metrics.steps++;
             metrics.comparisons++;
-            if (a[p] <= x) {
+
+            if (parentValue <= x) {
                 break;
             }
-            a[i] = a[p];
+
+            a[i] = parentValue;
             metrics.moves++;
             i = p;
         }
+
         a[i] = x;
     }
 
@@ -62,6 +75,7 @@ public class MinHeap {
         if (size == 0) {
             throw new IllegalStateException("heap is empty");
         }
+
         metrics.steps++;
         return a[0];
     }
@@ -70,41 +84,73 @@ public class MinHeap {
         if (size == 0) {
             throw new IllegalStateException("heap is empty");
         }
+
         int min = a[0];
         metrics.steps++;
-        int last = a[--size];
-        metrics.steps++;
+        size--;
+
         if (size > 0) {
-            siftDown(0, last);
+            int last = a[size];
+            metrics.steps++;
+            siftDown(0, last, size);
         }
+
         return min;
     }
 
-    private void siftDown(int i, int x) {
+    private void siftDown(int i, int x, int originalIndex) {
         while (true) {
-            int l = 2 * i + 1;
-            if (l >= size) {
+            int left = 2 * i + 1;
+
+            if (left >= size) {
                 break;
             }
-            int c = l;
-            metrics.steps++; // read a[l]
-            int r = l + 1;
-            if (r < size) {
-                metrics.steps++; // read a[r]
+
+            int child = left;
+            int childValue = a[left];
+            metrics.steps++;
+
+            int right = left + 1;
+
+            if (right < size) {
+                int rightValue = a[right];
+                metrics.steps++;
                 metrics.comparisons++;
-                if (a[r] < a[l]) {
-                    c = r;
+
+                if (rightValue < childValue) {
+                    child = right;
+                    childValue = rightValue;
                 }
             }
+
             metrics.comparisons++;
-            if (a[c] >= x) {
+
+            if (childValue >= x) {
                 break;
             }
-            a[i] = a[c];
+
+            a[i] = childValue;
             metrics.moves++;
-            i = c;
+            i = child;
         }
+
         a[i] = x;
+
+        if (i != originalIndex) {
+            metrics.moves++;
+        }
+    }
+
+    private void grow() {
+        int[] bigger = new int[a.length * 2];
+
+        for (int i = 0; i < size; i++) {
+            bigger[i] = a[i];
+            metrics.steps++;
+            metrics.moves++;
+        }
+
+        a = bigger;
     }
 
     public boolean isHeap() {
@@ -113,6 +159,7 @@ public class MinHeap {
                 return false;
             }
         }
+
         return true;
     }
 }

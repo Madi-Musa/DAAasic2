@@ -1,9 +1,9 @@
 workload,variant,structure,n,time_ms,steps,moves,comparisons
-B,n-inserts,MinHeap,100,0.003,195,212,194
-B,buildHeap,MinHeap,100,0.003,185,66,184
-B,n-inserts,MinHeap,1000,0.043,2233,2247,2232
-B,buildHeap,MinHeap,1000,0.022,1858,741,1857
-B,n-inserts,MinHeap,10000,0.187,22594,28971,22593
-B,buildHeap,MinHeap,10000,0.243,18741,7438,18740
-B,n-inserts,MinHeap,100000,2.246,227663,258731,227662
-B,buildHeap,MinHeap,100000,1.220,188425,74241,188424
+B,n-inserts,MinHeap,100,0.002,306,212,194
+B,buildHeap,MinHeap,100,0.004,334,202,184
+B,n-inserts,MinHeap,1000,0.018,3240,2247,2232
+B,buildHeap,MinHeap,1000,0.033,3357,2147,1857
+B,n-inserts,MinHeap,10000,0.144,38961,28971,22593
+B,buildHeap,MinHeap,10000,0.092,33740,21379,18740
+B,n-inserts,MinHeap,100000,1.224,358718,258731,227662
+B,buildHeap,MinHeap,100000,0.889,338424,213453,188424
