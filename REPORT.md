@@ -1,64 +1,75 @@
 # Assignment 2 - Data Structures: DynamicArray, MyLinkedList, MinHeap
 
-Student: *Mussa Madi, SE-2509*  |  Course: Design and Analysis of Algorithms
+**Student:** Mussa Madi, SE-2509  
+**Course:** Design and Analysis of Algorithms
 
-All structures store primitive `int`. Counters are incremented inside the methods (see README). Benchmarks use `new Random(42)`,
-3 discarded warm-up runs + median of 5 runs, sizes n = 100, 1 000, 10 000, 100 000. Raw data: `results/results.csv`.
+All structures store primitive `int` values. Operation counters are incremented inside the data-structure methods. Benchmarks use `new Random(42)`, 3 discarded warm-up runs, and the median of 5 measured runs for sizes `n = 100, 1 000, 10 000, 100 000`. Raw benchmark data is stored in `results/results.csv`.
 
-## 1. Complexity table
+## 1. Complexity Table
 
-Notation: n = current size. "Avg" assumes a uniformly random index (arrays/lists) or random keys (heap).
+Notation: `n` is the current number of stored elements. Average-case statements for indexed array/list operations assume a uniformly random valid index. Heap average-case comments assume random input keys.
 
-| Structure | Operation | Best | Average | Worst | Justification |
-|---|---|---|---|---|---|
-| DynamicArray | `get(i)` | Θ(1) | Θ(1) | Θ(1) | One indexed read. |
-| DynamicArray | `add(x)` | Θ(1) | Θ(1) amortized | Θ(n) single call (amortized O(1)) | Write at `a[size]`; a full array triggers a copy of n cells, but doubling means n copies are paid by the previous n/2 cheap adds. |
-| DynamicArray | `add(i,x)` | Θ(1) (i = size) | Θ(n) | Θ(n) (i = 0) | Shifts `size - i` elements; for random i the average is n/2. |
-| DynamicArray | `remove(i)` | Θ(1) (i = size-1) | Θ(n) | Θ(n) (i = 0) | Shifts `size - i - 1` elements. |
-| DynamicArray | `contains(x)` | Θ(1) (x at index 0) | Θ(n) | Θ(n) (x absent) | Linear scan; absent x always scans all n cells. |
-| MyLinkedList | `get(i)` | Θ(1) (i = 0) | Θ(n) | Θ(n) (i = n-1) | Walks i+1 nodes from the head. |
-| MyLinkedList | `add(x)` | Θ(1) | Θ(1) | Θ(1) | Tail pointer: two pointer updates. |
-| MyLinkedList | `add(i,x)` | Θ(1) (i = 0 or n) | Θ(n) | Θ(n) (i = n-1) | Walk to node i-1 (i steps), then 2 pointer updates. |
-| MyLinkedList | `remove(i)` | Θ(1) (i = 0) | Θ(n) | Θ(n) | Walk to node i-1, then 1 pointer update. |
-| MyLinkedList | `contains(x)` | Θ(1) | Θ(n) | Θ(n) | Same linear scan as the array. |
-| MinHeap | `peekMin()` | Θ(1) | Θ(1) | Θ(1) | Reads `a[0]`. |
-| MinHeap | `insert(x)` | Θ(1) (x ≥ parent) | Θ(1) (random keys) | Θ(log n) (new global minimum) | Bubble-up climbs at most ⌊log₂ n⌋ levels; random keys rarely climb more than a constant number of levels. |
-| MinHeap | `extractMin()` | Θ(1) (all keys equal) | Θ(log n) | Θ(log n) | The moved last element is a leaf-level value and normally sinks almost to the bottom (about 2 comparisons per level). |
-| MinHeap | `buildHeap` (bonus) | Θ(n) | Θ(n) | Θ(n) | Sum over levels of (nodes at level x height) = O(n). |
+| Structure | Operation | Best | Average | Worst | Auxiliary Space | Justification |
+|---|---|---|---|---|---|---|
+| DynamicArray | `get(i)` | Θ(1) | Θ(1) | Θ(1) | Θ(1) | One indexed array read. |
+| DynamicArray | `add(x)` | Θ(1) | Θ(1) amortized | Θ(n) for one resizing call | Θ(1) normally, Θ(n) transient during resize | Appends at `a[size]`; when full, capacity doubles and existing elements are copied. |
+| DynamicArray | `add(i, x)` | Θ(1) when `i = size` | Θ(n) | Θ(n) when `i = 0` | Θ(1), excluding a possible resize copy | Shifts `size - i` elements to the right. |
+| DynamicArray | `remove(i)` | Θ(1) when `i = size - 1` | Θ(n) | Θ(n) when `i = 0` | Θ(1) | Shifts `size - i - 1` elements to the left. |
+| DynamicArray | `contains(x)` | Θ(1) | Θ(n) | Θ(n) | Θ(1) | Linear scan; an absent value requires checking all `n` elements. |
+| MyLinkedList | `get(i)` | Θ(1) when `i = 0` | Θ(n) | Θ(n) when `i = n - 1` | Θ(1) | Traverses nodes from the head until index `i`. |
+| MyLinkedList | `add(x)` | Θ(1) | Θ(1) | Θ(1) | Θ(1) | A tail pointer allows constant-time append with a small number of link updates. |
+| MyLinkedList | `add(i, x)` | Θ(1) when `i = 0` or `i = n` | Θ(n) | Θ(n) | Θ(1) | Traverses to the insertion position and then updates links. |
+| MyLinkedList | `remove(i)` | Θ(1) when `i = 0` | Θ(n) | Θ(n) | Θ(1) | Traverses to the predecessor of the removed node, then updates links. |
+| MyLinkedList | `contains(x)` | Θ(1) | Θ(n) | Θ(n) | Θ(1) | Linear scan through list nodes. |
+| MinHeap | `peekMin()` | Θ(1) | Θ(1) | Θ(1) | Θ(1) | Reads the root at `a[0]`. |
+| MinHeap | `insert(x)` | Θ(1) | Θ(1) expected for random keys | Θ(log n) | Θ(1) | Bubble-up moves through at most the heap height. |
+| MinHeap | `extractMin()` | Θ(1) in a case requiring no sinking | Θ(log n) | Θ(log n) | Θ(1) | The last value is moved to the root and may bubble down through the heap height. |
+| MinHeap | `buildHeap(int[])` (bonus) | Θ(n) | Θ(n) | Θ(n) | Θ(1) beyond the heap array | Floyd's bottom-up construction performs a total linear amount of sift-down work. |
 
-Auxiliary space: DynamicArray Θ(n) (capacity < 2n, plus a temporary copy of n cells during growth), MyLinkedList Θ(n)
-(one node object with header, value and pointer per element), MinHeap Θ(n) (array, capacity < 2n); all operations use O(1) extra space.
+The structures themselves use Θ(n) memory: DynamicArray and MinHeap use primitive arrays, while MyLinkedList stores one node object per element.
 
-## 2. Loop invariant proofs
+## 2. Loop Invariant Proofs
 
 ### 2.1 `DynamicArray.contains(x)`
 
 ```java
 for (int i = 0; i < size; i++) {
-        if (a[i] == x) return true;
-        }
-        return false;
+    if (a[i] == x) {
+        return true;
+    }
+}
+return false;
 ```
 
-* **Invariant:** before the iteration with index i, x does not occur in `a[0..i-1]`.
-* **Initialization:** i = 0, the range `a[0..-1]` is empty, so the statement is trivially true.
-* **Maintenance:** assume x is not in `a[0..i-1]` and the iteration runs. If `a[i] == x` the method returns true and the loop is left. Otherwise `a[i] != x`, so x is not in `a[0..i]`, which is exactly the invariant for i+1.
-* **Termination:** the loop ends normally when i = size. The invariant then says x is not in `a[0..size-1]`, i.e. in no stored element.
-* **Conclusion:** `true` is returned only when `a[i] == x` for a valid i, so it is never wrong; `false` is returned only after termination, where the invariant proves absence. The loop makes at most `size` iterations, so it always terminates, and `contains` is correct.
+**Invariant:** Before every iteration with index `i`, the value `x` does not occur in positions `0` through `i - 1`.
 
-### 2.2 `MinHeap.siftDown` (the loop of `extractMin`)
+**Initialization:** Before the first iteration, `i = 0`. No elements have been checked, so the range before index `0` is empty and the invariant is true.
 
-`extractMin` saves `min = a[0]`, takes `x = a[--size]` (the last element) and calls `siftDown(0, x)`: position i is a "hole", x is the value to place.
+**Maintenance:** Assume the invariant is true before iteration `i`. If `a[i] == x`, the method returns `true`. Otherwise, `a[i] != x`, so `x` is absent from positions `0` through `i`. Therefore, the invariant is true before the next iteration.
+
+**Termination:** The loop terminates normally when `i == size`. At that point, every stored element from index `0` to `size - 1` has been checked and none is equal to `x`.
+
+**Conclusion:** Returning `true` is correct because it happens only when an equal element is found. If the loop terminates normally, the invariant proves that `x` is absent from the whole array, so returning `false` is correct.
+
+### 2.2 `MinHeap.siftDown` used by `extractMin()`
+
+`extractMin()` stores the root value, moves the last heap element into a temporary variable `x`, decreases `size`, and calls `siftDown(0, x)`. During `siftDown`, index `i` is treated as a hole where `x` will eventually be placed.
 
 ```java
 while (true) {
-    int l = 2*i+1;
-    if (l >= size) break;
+    int l = 2 * i + 1;
+    if (l >= size) {
+        break;
+    }
 
     int c = l;
-    if (l+1 < size && a[l+1] < a[l]) c = l+1;
+    if (l + 1 < size && a[l + 1] < a[l]) {
+        c = l + 1;
+    }
 
-    if (a[c] >= x) break;
+    if (a[c] >= x) {
+        break;
+    }
 
     a[i] = a[c];
     i = c;
@@ -66,38 +77,43 @@ while (true) {
 a[i] = x;
 ```
 
-* **Invariant** (before each iteration, with position i regarded as holding x):
-  **(I1)** `a[parent] <= a[child]` holds for every parent-child pair of the tree `[0..size-1]` except possibly the pairs (i, child of i);
-  **(I2)** if i > 0 then `a[parent(i)] <= x` and `a[parent(i)] <= a[child]` for every child of i.
-* **Initialization (i = 0):** before the call the array was a valid heap. Removing the last position (a leaf) leaves every pair among positions `1..size-1` unchanged and valid; the only pairs involving position 0 are (0, child), which are excepted. (I2) is vacuous because i = 0 has no parent.
-* **Maintenance:** let the iteration continue, so i has a child and c is its smaller child with `a[c] < x`. The body does `a[i] = a[c]; i = c`. Let i' = c be the new hole.
-  * Pair (i, c): the old hole now holds the old `a[c]`, and the new hole virtually holds x; `a[c] < x` gives `a[i] <= x`, so the pair is valid.
-  * Pair (i, other child s): c was the smaller child, so `a[c] <= a[s]`, valid.
-  * Pair (parent(i), i): the old hole now holds the old `a[c]`; by (I2) of the previous iteration `a[parent(i)] <= a[c]`, valid.
-  * (I2) for i': `a[parent(i')] = a[i]` (new value = old `a[c]`) `< x`, and the children of c still have their original values from the initial valid heap, so `a[c] <= a[child of c]`, which gives `a[parent(i')] <= a[child of i']`.
-  * All other pairs are untouched and valid by (I1). So (I1) and (I2) hold for i'.
-* **Termination:** each iteration moves i from level k to level k+1, so the loop ends after at most ⌊log₂ n⌋ iterations, either (a) i has no child, or (b) `a[c] >= x` for the smaller child c. Then `a[i] = x` fills the hole.
-* **Conclusion:** at exit the pair (parent(i), i) is valid by (I2) (`a[parent(i)] <= x`); in case (a) the pairs (i, child) do not exist, in case (b) x is at most the smaller child and therefore at most both children, so they are valid too. All other pairs are valid by (I1), hence the whole array is a min-heap again, and `extractMin` returns the smallest element. Because the heap property holds after every `extractMin`, n calls return the keys in non-decreasing order.
+**Invariant:** Before every iteration, all parent-child pairs satisfy the min-heap property except possibly pairs involving the current hole at index `i`. In addition, when `i > 0`, the parent of the hole is less than or equal to `x`.
 
-## 3. Results and plots
+**Initialization:** At the beginning, `i = 0`. Before removing the root, the structure is a valid min-heap. Removing the last element does not break any remaining parent-child relation. Only the root position may violate the heap property after the last value is selected as `x`, so the invariant holds.
 
-Each figure has "time vs n" on the left and "steps / moves / comparisons vs n" on the right.
+**Maintenance:** The algorithm chooses the smaller child `c`. If `a[c] < x`, that child is moved into the hole and the hole moves down to `c`. Because `c` is the smaller child, moving it upward preserves the heap relation with the other child. The new parent of the hole contains the old `a[c]`, which is less than `x`, so the second part of the invariant also remains true.
+
+**Termination:** Each iteration moves the hole down by one level, so the loop must stop after at most the height of the heap, which is Θ(log n). It stops either because the hole has no child or because the smaller child is greater than or equal to `x`.
+
+**Conclusion:** When the loop stops, placing `x` into the hole satisfies the relation with its parent and with both children, if they exist. All other parent-child relations were preserved by the invariant, so the whole array is again a valid min-heap. Therefore, `extractMin()` restores the heap property correctly.
+
+## 3. Results and Plots
+
+Each workload plot contains execution time versus `n` and the measured operation counters (steps, moves, and comparisons) versus `n`.
+
+### W1 - Random Access
 
 ![W1](results/plots/W1.png)
 
+### W2 - Search
+
 ![W2](results/plots/W2.png)
+
+### W3 - Insert and Remove
 
 ![W3](results/plots/W3.png)
 
+### W4 - Priority Processing
+
 ![W4](results/plots/W4.png)
 
-### Bonus: buildHeap
+### Bonus - Floyd `buildHeap`
 
 ![Bonus buildHeap](results/plots/bonus_buildheap.png)
 
-Selected values for n = 100 000 (median of 5 runs):
+Selected values for `n = 100 000` (median of 5 measured runs):
 
-| Workload | Structure | time (ms) | steps | moves | comparisons |
+| Workload | Structure | Time (ms) | Steps | Moves | Comparisons |
 |---|---|---:|---:|---:|---:|
 | W1 get | DynamicArray | 0.018 | 10 000 | 0 | 0 |
 | W1 get | MyLinkedList | 838.573 | 504 930 938 | 0 | 0 |
@@ -109,93 +125,64 @@ Selected values for n = 100 000 (median of 5 runs):
 | W3 middle | MyLinkedList | 186.727 | 100 001 000 | 3 000 | 0 |
 | W4 | MinHeap | 8.767 | 3 390 180 | 1 759 235 | 3 059 125 |
 
-Bonus buildHeap results for n = 100 000:
+Bonus `buildHeap` results for `n = 100 000`:
 
-| Method | time (ms) | steps | moves | comparisons |
+| Method | Time (ms) | Steps | Moves | Comparisons |
 |---|---:|---:|---:|---:|
-| n separate inserts | 1.224 | 358 718 | 258 731 | 227 662 |
-| Floyd buildHeap | 0.889 | 338 424 | 213 453 | 188 424 |
+| `n` separate inserts | 1.224 | 358 718 | 258 731 | 227 662 |
+| Floyd `buildHeap` | 0.889 | 338 424 | 213 453 | 188 424 |
 
-Absolute times vary between runs and machines.
-Small cases such as n = 100 are the noisiest because the operations finish in a very small amount of time. This is why warm-up runs are performed before the measured runs. The counters are deterministic for the same input and seed.
+Absolute execution times can vary between machines and runs. Very small inputs are especially noisy because their running time is extremely short, which is why warm-up runs are discarded before taking the median of the measured runs. The operation counters are deterministic for the same input data and random seed.
 
 ## 4. Discussion
 
-1. `get(i)` costs exactly 1 step in DynamicArray and i+1 steps in MyLinkedList. For n = 100 000, 10 000 random reads require 10 000 steps for DynamicArray and about 505 million steps for MyLinkedList. The measured times are 0.018 ms and 838.573 ms respectively.
+1. In W1, `get(i)` costs exactly 1 step in DynamicArray and about `i + 1` steps in MyLinkedList, so for `n = 100 000`, 10 000 random reads require only 10 000 steps for DynamicArray but about 505 million steps for MyLinkedList.
 
-2. The reason DynamicArray performs well for random access is that an array provides direct indexed access. MyLinkedList must start from the head and follow nodes until it reaches the required index.
+2. This happens because DynamicArray provides direct indexed access in Θ(1), while MyLinkedList must start from the head and follow nodes until it reaches the required index, giving Θ(n) random access.
 
-3. W1 clearly demonstrates the difference between Θ(1) random access in DynamicArray and Θ(n) random access in MyLinkedList. As n grows, the linked-list time increases strongly while the DynamicArray time remains very small.
+3. In W2, both structures use linear search and perform the same number of comparisons, but DynamicArray is still faster because its primitive integers are stored contiguously in memory.
 
-4. In W2, both structures use linear search. For n = 100 000, DynamicArray performs 73 835 543 comparisons and MyLinkedList performs the same number of comparisons.
+4. Sequential array access benefits from CPU cache locality, while MyLinkedList suffers from pointer chasing because each node contains a reference to the next node and may be located elsewhere in memory.
 
-5. Even though both W2 implementations are Θ(n), DynamicArray finishes in 21.869 ms while MyLinkedList takes 165.383 ms. Therefore, equal asymptotic complexity does not mean equal real execution time.
+5. Therefore, equal asymptotic complexity does not always mean equal real execution time, because memory layout and CPU cache behaviour also affect performance.
 
-6. One important reason is memory layout. DynamicArray stores primitive integers next to each other in one array, while MyLinkedList stores each value in a separate node connected through references.
+6. W3 demonstrates an important trade-off: MyLinkedList is very efficient for insertions and removals at the head because only a few links must be updated, while DynamicArray must shift many elements.
 
-7. Sequential array access has good cache locality. When the CPU loads one part of the array, nearby values are likely to be loaded into the cache as well.
+7. For `n = 100 000` in the head workload, MyLinkedList performs only 3 000 moves and takes 0.006 ms, while DynamicArray performs 200 999 000 moves and takes 11.415 ms.
 
-8. A linked list requires pointer chasing. The program must read the current node's reference before it knows where the next node is located, which creates more memory-access overhead.
+8. However, for operations in the middle, MyLinkedList must first traverse nodes to reach the required position, so DynamicArray can still be faster even when it performs many shifts.
 
-9. W3 demonstrates an important trade-off between arrays and linked lists.
+9. For `n = 100 000` in the middle workload, MyLinkedList takes 186.727 ms with about 100 million traversal steps, while DynamicArray takes 5.696 ms despite performing about 101 million moves.
 
-10. In the head variant, MyLinkedList is very efficient because inserting and removing at the head only changes a small number of references. For n = 100 000, it performs only 3 000 moves and takes 0.006 ms.
+10. W4 shows that MinHeap is suitable for priority processing because `peekMin()` is Θ(1), while `insert()` and `extractMin()` are Θ(log n) in the worst case.
 
-11. DynamicArray is much more expensive at the head because every insertion or removal requires shifting many elements. In the same workload it performs 200 999 000 moves and takes 11.415 ms.
+11. For `n = 100 000`, 100 000 insertions followed by 100 000 `extractMin()` operations take 8.767 ms, with 3 059 125 comparisons and 1 759 235 moves.
 
-12. Therefore, MyLinkedList has a clear advantage for repeated operations at the front of the structure.
+12. MinHeap also benefits from an array-based representation, where children are located at `2*i + 1` and `2*i + 2`, so separate node objects and child pointers are not required.
 
-13. The situation changes for operations in the middle. A linked list must first traverse nodes to find the requested position.
+13. The bonus experiment shows that Floyd's `buildHeap` performs fewer operations than inserting every element separately, which agrees with the theoretical Θ(n) complexity of `buildHeap` compared with Θ(n log n) total complexity for repeated insertions.
 
-14. In W3 middle, MyLinkedList performs about 100 million steps and takes 186.727 ms. DynamicArray performs about 101 million moves but only takes 5.696 ms.
-
-15. This shows that moving contiguous array elements can be considerably faster in practice than traversing the same approximate number of linked-list nodes.
-
-16. Therefore, DynamicArray is generally suitable for random access, searching and many middle operations, while MyLinkedList is useful when operations are concentrated at the head or when the required node is already known.
-
-17. W4 evaluates MinHeap as a priority structure. A MinHeap keeps the smallest element at the root, so `peekMin()` is Θ(1).
-
-18. Insertion and `extractMin()` may move through the height of the heap, so their worst-case complexity is Θ(log n).
-
-19. For n = 100 000, W4 performs 100 000 inserts and 100 000 `extractMin` operations in 8.767 ms.
-
-20. The measured number of comparisons is 3 059 125, while the number of moves is 1 759 235. Their growth is consistent with the expected heap behaviour as n increases.
-
-21. MinHeap is represented using an array. For an element at index i, the left child is at `2*i + 1` and the right child is at `2*i + 2`. Because of this representation, separate node objects and child pointers are not required.
-
-22. The bonus experiment compares two ways of creating a heap: inserting every element separately and Floyd's bottom-up `buildHeap`.
-
-23. For n = 100 000, separate inserts take 1.224 ms, while `buildHeap` takes 0.889 ms.
-
-24. Separate inserts perform 227 662 comparisons and 258 731 moves. `buildHeap` performs 188 424 comparisons and 213 453 moves.
-
-25. This result agrees with the theoretical difference. Repeated insertion has worst-case Θ(n log n) total complexity, while Floyd's `buildHeap` has Θ(n) complexity.
-
-26. For random values, the practical difference is not extremely large because many inserted elements do not travel all the way to the root. However, `buildHeap` still performs fewer operations for the large test case.
-
-27. Overall, the benchmark results agree with the expected behaviour of the three data structures. DynamicArray is strong for indexing and contiguous access, MyLinkedList is strong for head operations, and MinHeap is appropriate when efficient minimum-priority processing is needed.
+14. Overall, DynamicArray is a strong choice for indexing and cache-friendly sequential access, MyLinkedList is useful for repeated head operations, and MinHeap is appropriate when efficient minimum-priority processing is required.
 
 ## 5. Testing
 
-The project contains 30 JUnit 5 tests.
+The project contains 30 JUnit 5 tests covering:
 
-The tests cover:
-
-* empty structures;
-* one-element structures;
-* duplicate values;
-* first and last indices;
-* invalid indices;
-* DynamicArray capacity growth;
-* 5 000 random operations compared with `java.util.ArrayList`;
-* operation counters;
-* DynamicArray `get(i)` step counting;
-* MyLinkedList traversal and tail behaviour;
-* MinHeap empty-heap exceptions;
-* heap property after insertions;
-* heap property after extractions;
-* sorted extraction output compared with `Arrays.sort`;
-* Floyd's `buildHeap`.
+- empty structures;
+- one-element structures;
+- duplicate values;
+- first and last indices;
+- invalid indices;
+- DynamicArray capacity growth;
+- 5 000 random operations compared with `java.util.ArrayList` in tests;
+- operation counters;
+- DynamicArray `get(i)` step counting;
+- MyLinkedList traversal and tail behaviour;
+- MinHeap empty-heap exceptions;
+- heap property after insertions;
+- heap property after extractions;
+- sorted extraction output compared with `Arrays.sort`;
+- Floyd's `buildHeap`.
 
 All tests pass successfully:
 
@@ -204,4 +191,4 @@ Tests run: 30, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
 
-The successful test run confirms that the implemented data structures satisfy the tested functional requirements and that the benchmark can be executed without errors.
+The successful test run confirms that the implemented data structures satisfy the tested functional requirements.
